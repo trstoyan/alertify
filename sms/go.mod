@@ -1,4 +1,4 @@
-module sms
+module github.com/trstoyan/Alertify/sms
 
 go 1.22.5
 
