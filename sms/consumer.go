@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/segmentio/kafka-go"
-	"github.com/trstoyan/alertify/kafka"
+	"github.com/trstoyan/Alertify/kafka"
 )
 
 type SMSPayload struct {

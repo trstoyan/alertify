@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/trstoyan/alertify/kafka"
-	"github.com/trstoyan/alertify/sms"
+	"github.com/trstoyan/Alertify/kafka"
+	"github.com/trstoyan/Alertify/sms"
 )
 
 func main() {
