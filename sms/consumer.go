@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/trstoyan/Alertify/kafka"
+	"alertify/kafka"
 )
 
 type SMSPayload struct {

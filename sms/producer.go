@@ -3,7 +3,7 @@ package sms
 import (
 	"encoding/json"
 
-	"github.com/trstoyan/Alertify/kafka"
+	"alertify/kafka"
 )
 
 func ProduceSMSMessage(producer *kafka.Writer, payload SMSPayload) error {
