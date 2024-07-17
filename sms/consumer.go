@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/segmentio/kafka-go"
 	"github.com/trstoyan/Alertify/kafka"
 )
 
