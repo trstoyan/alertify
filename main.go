@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/trstoyan/alertify/api"
 )
 
-func myname(name string) string {
-	return name
+func init() {
+	fmt.Println("Initializing...")
 }
 
 func main() {
-	fmt.Printf("Hello, World! %s", myname("Sarath"))
+	fmt.Println(api.Myname("John Doe"))
+	fmt.Println("Hello, World!")
 }
