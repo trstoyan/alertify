@@ -1,16 +1,13 @@
 package sms
 
-// SMSService represents the interface a SMS service should conform to
-type SMSService interface {
-	SendSMS(phoneNumber, message string) error
-}
+import (
+	"fmt"
+	"time"
+)
 
-// Service is a type that implements the smsService interface
-type Service struct{}
+func SendSMS(message string) {
 
-// SendSMS implements the method to send sms to a particular user
-func (s *Service) SendSMS(phoneNumber, message string) error {
-	// Code to send SMS using an SMS provider SDK
-	// Return an error if the operation fails
-	return nil
+	time.Sleep(10 * time.Second)
+	// Replace with actual SMS gateway API call
+	fmt.Println("Sending SMS:", message)
 }
