@@ -1,28 +1,28 @@
 package main
 
 import (
-	"log"
+	"github.com/trstoyan/alertify/api"
+	"github.com/trstoyan/alertify/email"
+	"github.com/trstoyan/alertify/kafka"
+	"github.com/trstoyan/alertify/sms"
 
-	"github.com/trstoyan/Alertify/kafka"
-	"github.com/trstoyan/Alertify/sms"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	brokerAddress := "localhost:9092"
-	smsTopic := "sms_topic"
-	groupID := "sms_service"
 
-	// Start SMS Consumer
-	sms.StartSMSConsumer(brokerAddress, smsTopic, groupID)
+	go api.StartServer()
 
-	// Simulate producing an SMS message
-	producer := kafka.NewKafkaProducer(brokerAddress, smsTopic)
-	payload := sms.SMSPayload{
-		PhoneNumber: "1234567890",
-		Message:     "Hello, this is a test message.",
-	}
-	err := sms.ProduceSMSMessage(producer, payload)
-	if err != nil {
-		log.Fatalf("failed to produce SMS message: %v", err)
-	}
+	go kafka.Consume(func(key, message string) string { sms.SendSMS(key, message); return "" }, "sms-topic")
+	go kafka.Consume(func(key, message string) string { email.SendEmail(key, message); return "" }, "email-topic")
+	go kafka.Consume(func(key, message string) string { api.HandleResponse(key, message); return "" }, "email-sent-topic")
+
+	// Graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+	log.Println("Shutting down gracefully...")
 }

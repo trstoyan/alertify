@@ -3,20 +3,23 @@ package sms
 import (
 	"fmt"
 	"log"
+
+	"github.com/trstoyan/alertify/kafka"
 )
 
-func SendSMS(phoneNumber, message string) error {
-	// Hypothetical function to send SMS using an SMS gateway like Twilio or Nexmo
-	// Replace this with actual implementation
-	err := sendSMSViaGateway(phoneNumber, message)
-	if err != nil {
-		return fmt.Errorf("failed to send SMS: %w", err)
-	}
-	return nil
-}
+func SendSMS(key, message string) string {
 
-func sendSMSViaGateway(phoneNumber, message string) error {
-	// Mock implementation for the purpose of this example
-	log.Printf("Sending SMS to %s: %s", phoneNumber, message)
-	return nil
+	// Replace with actual SMS gateway API call
+	fmt.Println("Sending SMS:", message, "with key:", key)
+
+	responseMessage := SendSMSTwilio("+19382531802", "+359884390195", message)
+
+	err := kafka.ProduceWithKey(responseTopic, key, *responseMessage.Body)
+	if err != nil {
+		log.Printf("Failed to produce email response: %s", err)
+	} else {
+		log.Printf("Produced email response for key: %s", key)
+	}
+
+	return *responseMessage.Body
 }

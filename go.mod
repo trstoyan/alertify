@@ -1,13 +1,15 @@
-module github.com/trstoyan/Alertify
+module github.com/trstoyan/alertify
 
 go 1.22.5
 
+require github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
+
 require (
-	github.com/segmentio/kafka-go v0.4.47
-	github.com/trstoyan/Alertify/sms v0.0.0-20240717081026-7ab85dddfbd0
+	github.com/joho/godotenv v1.5.1
+	github.com/twilio/twilio-go v1.22.3
 )
 
 require (
-	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/golang/mock v1.6.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 )
