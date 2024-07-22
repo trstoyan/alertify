@@ -1,42 +1,38 @@
 package sms
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
+	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/trstoyan/alertify/kafka"
 )
 
-func ProduceSMS(message string) {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "10.25.8.39:9092"})
+const topic string = "sms-topic"
+
+func ProduceSMS(message string) string {
+
+	hasher := sha256.New()
+	hasher.Write([]byte(message + time.Now().String()))
+	msgKey := hex.EncodeToString(hasher.Sum(nil))
+
+	err := kafka.ProduceWithKey(topic, msgKey, message)
 	if err != nil {
-		log.Fatalf("Failed to create producer: %s", err)
+		log.Fatalf("Failed to send SMS: %s", err)
+	} else {
+		log.Printf("SMS sent successfully with key: %s\n", msgKey)
 	}
-	defer p.Close()
+	return msgKey
+}
 
-	// Start a go routine to asynchronously handle delivery reports
-	go func() {
-		for e := range p.Events() {
-			switch ev := e.(type) {
-			case *kafka.Message:
-				if ev.TopicPartition.Error != nil {
-					log.Printf("Failed to deliver message: %v\n", ev.TopicPartition.Error)
-				} else {
-					log.Printf("Successfully delivered message to topic %s [%d] at offset %v\n",
-						*ev.TopicPartition.Topic, ev.TopicPartition.Partition, ev.TopicPartition.Offset)
-				}
-			}
-		}
-	}()
+const responseTopic string = "sms-sent-topic"
 
-	topic := "sms-topic"
-	// Produce message without waiting for delivery report
-	err = p.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          []byte(message),
-	}, nil)
+func ProduceSMSResponse(message string) {
+	err := kafka.ProduceWithKey(responseTopic, "", message)
 	if err != nil {
-		log.Printf("Failed to produce message: %s", err)
+		log.Fatalf("Failed to send SMS response: %s", err)
+	} else {
+		log.Printf("SMS response sent successfully with key: %s\n", message)
 	}
-
-	// Note: In a real application, ensure proper shutdown logic to drain the Events channel and close the producer cleanly.
 }
