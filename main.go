@@ -13,10 +13,12 @@ import (
 )
 
 func main() {
+
 	go api.StartServer()
 
-	go kafka.Consume("sms-topic", sms.SendSMS)
-	go kafka.Consume("email-topic", email.SendEmail)
+	go kafka.Consume(func(key, message string) string { sms.SendSMS(key, message); return "" }, "sms-topic")
+	go kafka.Consume(func(key, message string) string { email.SendEmail(key, message); return "" }, "email-topic")
+	go kafka.Consume(func(key, message string) string { api.HandleResponse(key, message); return "" }, "email-sent-topic")
 
 	// Graceful shutdown
 	sigChan := make(chan os.Signal, 1)
