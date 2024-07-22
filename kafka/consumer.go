@@ -2,18 +2,24 @@ package kafka
 
 import (
 	"log"
+	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/joho/godotenv"
 )
 
 func Consume(handleMessage func(string, string) string, topic string) {
+	err := godotenv.Load() // This will load the .env file
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": "pkc-w7d6j.germanywestcentral.azure.confluent.cloud:9092",
-		"sasl.username":     "UQLV7MXX2G4BMN4G",
-		"sasl.password":     "tVNWl/C5NIUPTc+eHRk4U3cJbBW4lcvv89GkbZ1sBCkFOemlt1sWerbBfyQ2k7oQ",
+		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
+		"sasl.username":     os.Getenv("KAFKA_SASL_USERNAME"),
+		"sasl.password":     os.Getenv("KAFKA_SASL_PASSWORD"),
 		"security.protocol": "SASL_SSL",
 		"sasl.mechanisms":   "PLAIN",
-		"group.id":          "kafka-go-getting-started",
+		"group.id":          os.Getenv("KAFKA_GROUP_ID"),
 		"auto.offset.reset": "earliest"})
 	// Check for errors when creating the consumer and connect to the Kafka cluster
 	if err != nil {
@@ -43,12 +49,7 @@ func Consume(handleMessage func(string, string) string, topic string) {
 	for i := 0; i < numWorkers; i++ {
 		go func() {
 			for kafkaMsg := range messageChan {
-				responseMessage := handleMessage(kafkaMsg.Key, kafkaMsg.Value)
-				if responseMessage == "" {
-					log.Printf("Failed to handle message: %s", responseMessage)
-				} else {
-					log.Printf("Message handled successfully: %s", responseMessage)
-				}
+				handleMessage(kafkaMsg.Key, kafkaMsg.Value)
 			}
 		}()
 	}
