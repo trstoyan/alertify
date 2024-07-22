@@ -2,17 +2,23 @@ package kafka
 
 import (
 	"log"
+	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/joho/godotenv"
 )
 
 func ProduceWithKey(topic, key, message string) error {
+	err := godotenv.Load() // This will load the .env file
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "pkc-w7d6j.germanywestcentral.azure.confluent.cloud:9092",
+		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
 		"security.protocol": "SASL_SSL",
 		"sasl.mechanisms":   "PLAIN",
-		"sasl.username":     "UQLV7MXX2G4BMN4G",
-		"sasl.password":     "tVNWl/C5NIUPTc+eHRk4U3cJbBW4lcvv89GkbZ1sBCkFOemlt1sWerbBfyQ2k7oQ",
+		"sasl.username":     os.Getenv("KAFKA_SASL_USERNAME"),
+		"sasl.password":     os.Getenv("KAFKA_SASL_PASSWORD"),
 		"retries":           5,   // Retry up to 5 times
 		"retry.backoff.ms":  500, // Wait for 500ms before retrying
 	})
