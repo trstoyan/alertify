@@ -2,12 +2,14 @@ package sms
 
 import (
 	"fmt"
-	"time"
 )
 
-func SendSMS(message string) {
+func SendSMS(key, message string) string {
 
-	time.Sleep(10 * time.Second)
 	// Replace with actual SMS gateway API call
-	fmt.Println("Sending SMS:", message)
+	fmt.Println("Sending SMS:", message, "with key:", key)
+
+	responseMessage := "SMS sent successfully"
+
+	return responseMessage
 }
