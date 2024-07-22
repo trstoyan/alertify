@@ -3,7 +3,7 @@ package kafka
 import (
 	"log"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 func Consume(handleMessage func(string, string) string, topic string) {
