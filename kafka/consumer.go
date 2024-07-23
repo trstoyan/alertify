@@ -43,7 +43,7 @@ func Consume(handleMessage func(string, string) string, topic string) {
 	messageChan := make(chan KafkaMessage)
 
 	// Number of worker goroutines
-	numWorkers := 30
+	numWorkers := 1
 
 	// Start worker goroutines
 	for i := 0; i < numWorkers; i++ {
