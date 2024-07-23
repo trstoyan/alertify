@@ -9,50 +9,39 @@ import (
 )
 
 func ProduceWithKey(topic, key, message string) error {
-	err := godotenv.Load() // This will load the .env file
-	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+	// Load the .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Error loading .env file: %s", err)
+		return err // Return error to allow for graceful handling
 	}
+
+	// Create a new producer
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
 		"security.protocol": "SASL_SSL",
 		"sasl.mechanisms":   "PLAIN",
 		"sasl.username":     os.Getenv("KAFKA_SASL_USERNAME"),
 		"sasl.password":     os.Getenv("KAFKA_SASL_PASSWORD"),
-		"retries":           5,   // Retry up to 5 times
-		"retry.backoff.ms":  500, // Wait for 500ms before retrying
+		"retries":           5,
+		"retry.backoff.ms":  500,
 	})
 	if err != nil {
-		log.Fatalf("Failed to create producer: %s", err)
-		return err // Return error instead of terminating the program
+		log.Printf("Failed to create producer: %s", err)
+		return err // Return error to allow for graceful handling
 	}
 	defer p.Close()
 
-	deliveryChan := make(chan kafka.Event, 10000) // Use a delivery channel to handle reports
-
-	// Produce message
-	err = p.Produce(&kafka.Message{
+	// Produce the message
+	if err := p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Key:            []byte(key),
 		Value:          []byte(message),
-	}, deliveryChan)
-	if err != nil {
+	}, nil); err != nil {
 		return err // Return error if message production fails
 	}
 
-	go func() {
-		for e := range deliveryChan {
-			switch ev := e.(type) {
-			case *kafka.Message:
-				if ev.TopicPartition.Error != nil {
-					log.Printf("Failed to deliver message: %v\n", ev.TopicPartition.Error)
-				}
-			}
-		}
-	}()
-
 	// Wait for all messages to be delivered
-	p.Flush(15 * 1000) // Adjust the timeout as needed
+	p.Flush(5 * 1000) // Increase the timeout to ensure all messages are delivered
 
-	return nil
+	return err
 }
