@@ -2,15 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/trstoyan/alertify/email"
 	"github.com/trstoyan/alertify/sms"
 )
 
 func ValidateNotification(w http.ResponseWriter, r *http.Request) {
-	var notification Notification
+	var notification MessageRequest
 	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -27,15 +27,15 @@ func ValidateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if notification.Channel == "sms" {
-		msgKey := sms.ProduceSMS(notification.Message)
+		message := fmt.Sprintf("From: %s\nTo: %s\nMessage: %s", notification.MessageFrom, notification.MessageTo, notification.Message)
+		fmt.Println(message)
+		msgKey, err := sms.ProduceSMS(message)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		log.Printf("SMS notification received: %+v\n", notification)
 		response.Message = msgKey
-
-	} else if notification.Channel == "email" {
-		msgKey := email.ProduceEmail(notification.Message)
-		response.Message = msgKey
-
-		log.Printf("Email notification received: %+v\n", notification)
 
 	} else {
 		http.Error(w, "Invalid notification channel", http.StatusBadRequest)
