@@ -1,25 +1,46 @@
 package sms
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/trstoyan/alertify/kafka"
 )
 
-func SendSMS(key, message string) string {
+// Define a struct that matches the JSON structure
+type SMS struct {
+	From    string `json:"from"`
+	Message string `json:"message"`
+	To      string `json:"to"`
+}
 
-	// Replace with actual SMS gateway API call
-	fmt.Println("Sending SMS:", message, "with key:", key)
+func SendSMS(key string, messageDict string) error {
 
-	responseMessage := SendSMSTwilio("+19382531802", "+359884390195", message)
-
-	err := kafka.ProduceWithKey(responseTopic, key, *responseMessage.Body)
+	var sms SMS
+	// Unmarshal the messageDict into the sms struct
+	err := json.Unmarshal([]byte(messageDict), &sms)
 	if err != nil {
-		log.Printf("Failed to produce email response: %s", err)
-	} else {
-		log.Printf("Produced email response for key: %s", key)
+		log.Printf("Failed to unmarshal messageDict: %s", err)
+		return err // Return the error
 	}
 
-	return *responseMessage.Body
+	fmt.Printf(sms.From, sms.To, sms.Message)
+	// Assuming SendSMSTwilio returns an error
+	response := "hello" //SendSMSTwilio(sms.From, sms.To, sms.Message)
+	if response != "nil" {
+		log.Printf("Failed to send SMS response: %s", response)
+		return nil //response // Return the error
+	} else {
+		log.Printf("Sent SMS response for key: %s", key)
+		// Produce a message to the response topic
+		responseTopic := "your_response_topic_here" // Ensure this is correctly defined
+		err := kafka.ProduceWithKey(responseTopic, key, "message_sent")
+		if err != nil {
+			log.Printf("Failed to produce SMS response: %s", err)
+			return err // Return the error
+		}
+	}
+
+	return nil
 }
