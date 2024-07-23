@@ -10,7 +10,7 @@ import (
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-func SendSMSTwilio(fromNumber string, toNumber string, message string) *openapi.ApiV2010Message {
+func SendSMSTwilio(fromNumber string, toNumber string, message string) error {
 
 	err := godotenv.Load() // This will load the .env file
 	if err != nil {
@@ -35,12 +35,10 @@ func SendSMSTwilio(fromNumber string, toNumber string, message string) *openapi.
 	// Send the message
 	resp, err := client.Api.CreateMessage(params)
 	if err != nil {
-		fmt.Println(err.Error())
-		return resp
+		return err
 	} else {
-		fmt.Println("SMS sent successfully!")
-		fmt.Println(resp)
-		return resp
+		fmt.Println("SMS sent successfully:", resp.Sid)
+		return nil
 	}
 
 }
