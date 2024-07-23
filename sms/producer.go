@@ -3,6 +3,8 @@ package sms
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -11,19 +13,34 @@ import (
 
 const topic string = "sms-topic"
 
-func ProduceSMS(message string) string {
+func ProduceSMS(message string) (string, error) {
+
+	fmt.Println("ProduceSMS called", message)
 
 	hasher := sha256.New()
 	hasher.Write([]byte(message + time.Now().String()))
 	msgKey := hex.EncodeToString(hasher.Sum(nil))
 
-	err := kafka.ProduceWithKey(topic, msgKey, message)
-	if err != nil {
-		log.Fatalf("Failed to send SMS: %s", err)
-	} else {
-		log.Printf("SMS sent successfully with key: %s\n", msgKey)
+	messageDict := map[string]string{
+		"from":    "message_from",
+		"to":      "message_to",
+		"message": message,
 	}
-	return msgKey
+
+	// Convert messageDict to JSON string
+	messageJSON, errjson := json.Marshal(messageDict)
+	if errjson != nil {
+		return "", fmt.Errorf("failed to marshal messageDict to JSON: %w", errjson)
+	}
+
+	// Use a Go routine to send the message
+
+	err := kafka.ProduceWithKey(topic, msgKey, string(messageJSON))
+	if err != nil {
+		return "", fmt.Errorf("failed to send SMS: %w", err)
+	}
+
+	return msgKey, err
 }
 
 const responseTopic string = "sms-sent-topic"
