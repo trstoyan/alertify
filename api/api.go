@@ -1,17 +1,11 @@
 package api
 
-type Notification struct {
-	ID      string `json:"id"`
-	Channel string `json:"channel"`
-	Message string `json:"message"`
-}
-
 // RequestBody is the structure of the request body
 
-type RequestBody struct {
+type MessageRequest struct {
+	Channel     string `json:"channel"`
 	MessageTo   string `json:"message_to"`
 	MessageFrom string `json:"message_from"`
-	Channel     string `json:"channel"`
 	Message     string `json:"message"`
 }
 
