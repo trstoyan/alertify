@@ -17,13 +17,14 @@ func NewKafkaConsumer(brokerAddress, topic, groupID string) *kafka.Reader {
 	})
 }
 
-func ConsumeMessages(consumer *kafka.Reader, messageHandler func(kafka.Message)) {
+// ConsumeMessages reads messages in a loop and calls messageHandler with key and value.
+func ConsumeMessages(consumer *kafka.Reader, messageHandler func(key, value string)) {
 	for {
 		msg, err := consumer.ReadMessage(context.Background())
 		if err != nil {
 			log.Printf("error while reading message: %v", err)
 			continue
 		}
-		messageHandler(msg)
+		messageHandler(string(msg.Key), string(msg.Value))
 	}
 }

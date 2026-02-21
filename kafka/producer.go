@@ -25,3 +25,10 @@ func ProduceMessage(producer *kafka.Writer, key, value []byte) error {
 		},
 	)
 }
+
+// ProduceWithKey produces a message with a string key and value to the given topic.
+func ProduceWithKey(brokerAddress, topic, key, message string) error {
+	producer := NewKafkaProducer(brokerAddress, topic)
+	defer producer.Close()
+	return ProduceMessage(producer, []byte(key), []byte(message))
+}
