@@ -2,27 +2,33 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/trstoyan/Alertify/kafka"
+	"github.com/trstoyan/Alertify/api"
+	"github.com/trstoyan/Alertify/email"
+	"github.com/trstoyan/Alertify/slack"
 	"github.com/trstoyan/Alertify/sms"
 )
 
 func main() {
-	brokerAddress := "localhost:9092"
-	smsTopic := "sms_topic"
-	groupID := "sms_service"
-
-	// Start SMS Consumer
-	sms.StartSMSConsumer(brokerAddress, smsTopic, groupID)
-
-	// Simulate producing an SMS message
-	producer := kafka.NewKafkaProducer(brokerAddress, smsTopic)
-	payload := sms.SMSPayload{
-		PhoneNumber: "1234567890",
-		Message:     "Hello, this is a test message.",
+	brokerAddress := os.Getenv("KAFKA_BROKER")
+	if brokerAddress == "" {
+		brokerAddress = "localhost:9092"
 	}
-	err := sms.ProduceSMSMessage(producer, payload)
-	if err != nil {
-		log.Fatalf("failed to produce SMS message: %v", err)
-	}
+
+	// Start notification consumers
+	sms.StartSMSConsumer(brokerAddress, "sms-topic", "sms-service")
+	email.StartEmailConsumer(brokerAddress, "email-service")
+	slack.StartSlackConsumer(brokerAddress, "slack-service")
+
+	// Start HTTP API server in background
+	go api.StartServer()
+
+	// Block until a termination signal is received
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-quit
+	log.Printf("Received signal %s, shutting down", sig)
 }

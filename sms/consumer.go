@@ -17,11 +17,11 @@ func StartSMSConsumer(brokerAddress, topic, groupID string) {
 	go kafka.ConsumeMessages(consumer, handleSMSMessage)
 }
 
-func handleSMSMessage(msg kafka.Message) {
+func handleSMSMessage(key, value string) {
 	var payload SMSPayload
-	err := json.Unmarshal(msg.Value, &payload)
+	err := json.Unmarshal([]byte(value), &payload)
 	if err != nil {
-		log.Printf("error unmarshalling message: %v", err)
+		log.Printf("error unmarshalling SMS message: %v", err)
 		return
 	}
 
