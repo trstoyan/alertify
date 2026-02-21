@@ -1,6 +1,6 @@
 module github.com/trstoyan/Alertify
 
-go 1.22.5
+go 1.22
 
 require github.com/segmentio/kafka-go v0.4.47
 
